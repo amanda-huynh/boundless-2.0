@@ -77,12 +77,12 @@ Methods:
 
               <q-separator />
 
-              <!-- <q-tab
+              <q-tab
                 no-caps
                 name="logs" icon="forum" label="Logs"
               />
 
-              <q-separator /> -->
+              <q-separator />
 
               <q-tab
                 no-caps
@@ -95,8 +95,18 @@ Methods:
                 no-caps
                 name="formResponse" icon="list" label="Form Response"
               />
-
               <q-separator />
+              <q-tab
+                no-caps
+                name="notebooks" icon="book" label="Notebooks"
+              >
+              </q-tab>
+              <q-separator />
+              <!-- <q-tab
+                no-caps
+                name="notebooks" icon="book" label="Notebooks"
+              />
+              <q-separator /> -->
             </q-tabs>
           </template>
 
@@ -1418,7 +1428,262 @@ Methods:
                 </div>
 
               </q-tab-panel>
+              <!-- -------------------- Notebooks -------------------- -->
+              <q-tab-panel name="notebooks">
+                <div
+                  v-if="curData"
+                  align="center"
+                  class="tab-content shadow-2"
+                >
+                  <!-- -------------------- Preview Notebooks -------------------- -->
+                  <div
+                    v-if="childMode === 'preview'"
+                  >
+                  <div class="text-h5 q-mb-md"> Preview Notebooks
+                    <q-separator color="secondary" />
+                  </div>
+                    <q-item-section v-if="curData.notebooks.length === 0"> No notebook(s) to display. </q-item-section>
 
+                    <div
+                      v-if="curData.notebooks"
+                      class="q-pa-md q-gutter-sm"
+                    >
+                      <div
+                        v-for="(val, ind) in curData.notebooks"
+                        :key="ind"
+                      >
+                        <div
+                          v-if="!val.hidden"
+                          align="left"
+                          class="shadow-2 q-pa-sm"
+                          style="border-radius: 3px;"
+                        >
+                          <div class="cursor-pointer text-accent text-h6" @click="openNewTab(val.url)">
+                            <q-avatar>
+                              <img src="https://www.iconpacks.net/icons/1/free-notebook-icon-1025-thumb.png">
+                            </q-avatar>
+                            <strong> {{ val.title }} </strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                  <!-- -------------------- Edit Notebooks -------------------- -->
+                  <div v-else-if="childMode === 'edit'">
+
+                    <!-- ----------------- Notebook Edit Button ----------------- -->
+                    <div class="q-pa-sm">
+                      <div class="text-h5 q-mb-md"> Notebooks
+                        <q-btn
+                        round flat
+                        color="accent" icon="edit"
+                        @click="notebookDialog = true"
+                      />
+                      <q-separator color="secondary"/>
+                      <q-item-section v-if="curData.notebooks.length === 0" class="text-primary"> No notebook(s) to display. </q-item-section>
+                      <!-- Open pop-up edit window to add notebook name and url -->
+                      <q-dialog
+                        v-model="notebookDialog"
+                        persistent
+                        :maximized="maximizedToggle"
+                        transition-show="slide-up"
+                        transition-hide="slide-down"
+                      >
+                      <q-card class="bg-white text-black">
+                        <q-bar>
+                          <q-space />
+
+                          <q-btn dense flat icon="minimize" @click="maximizedToggle = false" :disable="!maximizedToggle">
+                            <q-tooltip v-if="maximizedToggle" class="bg-white text-primary">Minimize</q-tooltip>
+                          </q-btn>
+                          <q-btn dense flat icon="crop_square" @click="maximizedToggle = true" :disable="maximizedToggle">
+                            <q-tooltip v-if="!maximizedToggle" class="bg-white text-primary">Maximize</q-tooltip>
+                          </q-btn>
+                          <q-btn dense flat icon="close" v-close-popup>
+                            <q-tooltip class="bg-white text-primary">Close</q-tooltip>
+                          </q-btn>
+                        </q-bar>
+                        <q-card-section>
+                          <div class="text-h6">Edit/Add Notebook(s)
+                            <q-btn round dense color="accent" :disable="loading" icon="add" @click="addNewNotebooks" />
+                            <q-space />
+                          </div>
+                        </q-card-section>
+                        <div class="q-pa-md">
+                          <!-- Section to toggle between Edit and Preview View -->
+                          <q-card class="q-pa-md">
+                            <q-tabs
+                              dense
+                              class="text-grey" align="left"
+                              active-color="secondary"
+                              indicator-color="primary"
+                            >
+                              <q-tab name="edit" label="Edit" />
+
+                              <q-separator vertical />
+
+                              <q-tab name="preview" label="Preview" />
+
+                              <q-space />
+                            </q-tabs>
+                          <!-- Displays Notebook Name and URL List -->
+                          <ul class="notebooks">
+                            <li
+                              v-for="(notebook, index) in curData.notebooks"
+                              :key="index"
+                              align="left"
+                            >
+                            <div class="row inline full-width q-gutter-xs q-mb-sm">
+                            <!-- Remove Notebook Index. TODO: Drag and drop reorganizing feature
+                            <q-input
+                                dense filled
+                                class="col-1" type="number"
+                                label="Index"
+                                v-model="notebook.index"
+                              /> -->
+                              <q-input
+                                dense filled
+                                class="col-5" label="Notebook Name"
+                                v-model="notebook.title"
+                              />
+                              <q-input
+                                v-model="notebook.url"
+                                dense filled
+                                class="col-6" type="url"
+                                label="Notebook URL"
+                              />
+                              <q-item-section>
+                                <q-btn
+                                  dense round flat
+                                  icon="delete"
+                                  @click="deleteNotebookThread(ind)"
+                                />
+                              </q-item-section>
+                            </div>
+                            </li>
+                          </ul>
+                          </q-card> <br />
+                          <q-btn
+                            color="accent" label="SAVE" v-close-popup
+                          />
+                          &nbsp;&nbsp;&nbsp;
+                          <q-btn color="red" label="CANCEL" v-close-popup />
+                        </div>
+                      </q-card>
+                    </q-dialog>
+                    </div>
+
+                    <!-- -------------------- List of Notebooks ------------------- -->
+                    <div
+                      v-if="curData.logs"
+                      class="q-pa-md q-gutter-sm"
+                    >
+                      <div
+                        v-for="(val, ind) in curData.notebooks"
+                        :key="ind"
+                        align="left"
+                        class="shadow-2 q-pa-sm"
+                        style="border-radius: 3px;"
+                      >
+                        <div class="row">
+                          <div class="col">
+                            <div class="cursor-pointer text-accent text-h6" @click="openNewTab(val.url)">
+                              <q-avatar>
+                                <img src="https://www.iconpacks.net/icons/1/free-notebook-icon-1025-thumb.png">
+                              </q-avatar>
+                              <strong> {{ val.title }} </strong>
+                              <q-popup-edit
+                                buttons
+                                v-model="val.title"
+                                @hide="updateNotebookAtHide"
+                              >
+                                <q-input
+                                  dense filled autofocus
+                                  v-model="val.title"
+                                />
+                              </q-popup-edit>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- ------------------ Notebook Data ------------------ -->
+                        <!-- Stores entire notebook data collection  -->
+                        <div v-if="val.data">
+                          <div
+                            v-for="(dataVal, dataInd) in val.data"
+                            :key="dataInd"
+                            class="shadow-2 q-pa-sm q-mb-sm"
+                            style="border-radius: 3px;"
+                          >
+                            <div class="cursor-pointer q-pa-xs">
+                              Title: {{ dataVal.title }}
+                              <q-popup-edit
+                                buttons
+                                v-model="dataVal.title"
+                                @hide="updateAtHide"
+                              >
+                                <q-input
+                                  dense filled autofocus
+                                  v-model="dataVal.title"
+                                />
+                              </q-popup-edit>
+                            </div>
+
+                            <div class="cursor-pointer q-pa-xs q-mt-xs">
+                              Date: {{ dataVal.date }}
+                              <q-popup-edit
+                                buttons
+                                v-model="dataVal.date"
+                                @hide="updateAtHide"
+                              >
+                                <q-input
+                                  dense filled autofocus
+                                  v-model="dataVal.date"
+                                />
+                              </q-popup-edit>
+                            </div>
+
+                            <div class="cursor-pointer q-pa-xs q-mt-xs">
+                              Notebook URL: <br>
+                              <pre>{{ dataVal.url }}</pre>
+
+                              <q-popup-edit
+                                buttons
+                                v-model="dataVal.url"
+                                @hide="updateAtHide"
+                              >
+                                <q-input
+                                  dense
+                                  filled
+                                  autofocus
+                                  autogrow
+                                  v-model="dataVal.url"
+                                />
+                              </q-popup-edit>
+                            </div>
+
+                            <div align="right" class="q-gutter-sm" >
+                              <q-btn
+                                round flat
+                                color="accent" icon="delete"
+                                @click="deleteNotebook(dataInd, ind)"
+                              />
+                              <q-btn
+                                dense round flat
+                                color="accent" icon="reply"
+                                @click="replyNotebook(ind, dataVal)"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                    </div>
+                  </div>
+                </div>
+              </q-tab-panel>
               <!-- -------------------- Attachments -------------------- -->
               <q-tab-panel name="attachments">
                 <div class="tab-content shadow-2 q-pa-md">
@@ -1490,6 +1755,7 @@ Methods:
                     :projectMembers="curData.members"
                     :keywordOptions="keywordOptions"
                     :projectKeywords="curData.keywords"
+                    :projectNotebooks="curData.notebooks"
                     :customFormResponse="curData.customFormResponse"
                     :customFormEnabled="true"
                   />
@@ -1851,12 +2117,12 @@ import Vue from 'vue'
 import productionDb, { productionStorage } from '../../firebase/init_production'
 import testingDb, { testingStorage } from '../../firebase/init_testing'
 
-import UploadGUI from '../../components/Upload.vue'
-import ProgressBar from '../../components/ProgressBar.vue'
-import AddUser from '../../components/SubmitUserAdminConsole.vue'
-import PopupInputLimitLen from '../../components/Popups/PopupInputLimitLen.vue'
-import MarkdownTranslator from '../../components/MarkdownTranslator.vue'
-import ProjectReviewForm from '../../components/Forms/Project/ProjectReviewForm.vue'
+import UploadGUI from '../Upload.vue'
+import ProgressBar from '../ProgressBar.vue'
+import AddUser from '../SubmitUserAdminConsole.vue'
+import PopupInputLimitLen from '../Popups/PopupInputLimitLen.vue'
+import MarkdownTranslator from '../MarkdownTranslator.vue'
+import ProjectReviewForm from '../Forms/Project/ProjectReviewForm.vue'
 import EditCustomChips from './Shared/EditCustomChips.vue'
 
 export default {
@@ -1965,7 +2231,9 @@ export default {
         // tags <Array<String>>: list of default values for the progress bar
         tags: ['Idea', 'PoC', 'Value'],
         half: true // <Boolean>: flag for half step
-      }
+      },
+      notebookDialog: false,
+      maximizedToggle: true
     }
   },
 
@@ -2228,6 +2496,17 @@ export default {
 
       this.$forceUpdate()
     },
+    updateNotebookAtHide: function (entry) {
+      if (entry) {
+        if (entry[0] === 'index') {
+          this.curData.notebooks[entry[1]].index = parseInt(entry[2])
+        }
+      }
+
+      this.updated = true
+
+      this.$forceUpdate()
+    },
     /**
      * helper function to click on the hidden file picker
      */
@@ -2300,6 +2579,7 @@ export default {
         description: this.curData.description,
         members: tmpMembers,
         keywords: this.curData.keywords,
+        notebooks: this.curData.notebooks,
         progress: this.curData.progress,
         created: this.curData.created || this.curData.timestamp,
         timestamp: timeOfUpdate
@@ -2325,7 +2605,8 @@ export default {
         customFormResponse: this.curData.customFormResponse,
         webpage: this.curData.webpage,
         logs: this.curData.logs,
-        files: this.curData.files
+        files: this.curData.files,
+        notebooks: this.curData.notebooks
       })
 
       if (this.submitMode === 'database') {
@@ -2471,6 +2752,7 @@ export default {
       this.sortChip()
       this.curData = cloneDeep(this.data)
       this.curData.customFormResponse = this.curData.customFormResponse || []
+      this.curData.notebooks = this.curData.notebooks || []
       this.curData.logs = this.curData.logs || []
       this.curData.files = this.curData.files || {}
       this.childMode = this.mode
@@ -2697,9 +2979,6 @@ export default {
         }
       })
     },
-    /**
-     * helper function to add log inside a thread
-     */
     addLog: function (index) {
       this.$q.dialog({
         dark: true,
@@ -2782,6 +3061,81 @@ export default {
 
           this.curData.logs[familyIndex].data.push(tmpLog)
           // let size = this.curData.logs[index].data.length
+          this.updated = true
+
+          this.$forceUpdate()
+        } else {
+          this.$q.notify({
+            message: 'Not a valid response!',
+            color: 'negative',
+            icon: 'report_problem'
+          })
+        }
+      })
+    },
+    deleteNotebookThread: function (index) {
+      this.curData.notebooks.splice(index, 1)
+
+      this.updated = true
+
+      this.$forceUpdate()
+      this.$q.notify('Notebook successfully deleted.')
+    },
+    addNewNotebooks: function () {
+      let newNotebookThread = {
+        title: 'New Notebook',
+        url: 'https://google.com',
+        index: 1,
+        hidden: false
+      }
+      if (this.curData.notebooks) {
+        let size = this.curData.notebooks.length + 1
+        newNotebookThread['title'] = `Notebook #${size}`
+        // Custom Notebook Link, WindRiver access only
+        newNotebookThread['url'] = `https://windriversystems-my.sharepoint.com/:o:/g/personal/amanda_huynh_windriver_com/Ej_uk5uOO6VIptHsluZ_0-8BidE2dJ7xVOahAV0ut6_MrA?e=NUOWqJ`
+
+        this.curData.notebooks.push(newNotebookThread)
+      } else {
+        this.curData.notebooks = [newNotebookThread]
+      }
+      this.updated = true
+
+      this.$forceUpdate()
+    },
+    // TODO: Sort Notebooks
+    // sortNotebooks: function () {
+    //   /**
+    //    * sort the content of this.curData.notebooks in order by index field
+    //    * @param {void}
+    //    * @return {void}
+    //    */
+
+    //   this.curData.notebooks.sort((a, b) => {
+    //     return a.index - b.index
+    //   })
+    // },
+    replyNotebook: function (familyIndex, responseObj) {
+      this.$q.dialog({
+        dark: true,
+        title: 'Response...',
+        message: '<strong>Please enter your response.</strong><br><br><p class="text-red">Note: Your response cannot be empty!</p>',
+        html: true,
+        prompt: {
+          model: '',
+          type: 'text' // optional
+        },
+        cancel: true,
+        persistent: true
+      }).onOk(data => {
+        if (data) {
+          let tmpNotebook = {
+            title: `In response to: "${responseObj.title}"!`,
+            date: Date(),
+            description: `>>>>>>>>>>\n${responseObj.description}\n>>>>>>>>>>\n${data}`,
+            hidden: false
+          }
+
+          this.curData.notebooks[familyIndex].data.push(tmpNotebook)
           this.updated = true
 
           this.$forceUpdate()
@@ -3179,4 +3533,10 @@ export default {
 .toggle-label
   margin-top 5px
   font-size 10.5px
+
+ul.notebooks {
+  list-style: none;
+  padding: 0;
+}
+
 </style>
