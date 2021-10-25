@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "@quasar/cli": "^1.2.1",
+    "@quasar/extras": "^1.10.9",
+    "quasar": "^2.0.3",
+    "vuex": "^4.0.2"
+  },
+  "devDependencies": {
+    "@quasar/app": "^3.0.3"
+  }
+}

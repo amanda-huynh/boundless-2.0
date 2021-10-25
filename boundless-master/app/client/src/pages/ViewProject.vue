@@ -66,7 +66,6 @@ Methods:
             />
 
             <q-separator />
-            <!-- </div> -->
           </q-tabs>
         </template>
 
@@ -243,6 +242,62 @@ Methods:
                       </q-chip>
 
                     </div>
+                    <!-- --- TEST: Duplicate files for notebooks db ---
+            <q-tab-panel name="testingsection">
+              <div
+                class="shadow-2 q-pa-md"
+                style="
+                  margin: auto;
+                  max-width: 1000px;
+                  min-width: 800px;
+                  border-radius: 3px;
+                "
+              >
+                <div class="text-h5 q-mb-md">
+                  TESTING SECTION
+                  <q-separator color="secondary" />
+                </div>
+
+                <li
+                  v-for="(val, key, ind) in data.files"
+                  :key="ind"
+                  class="row q-ma-sm"
+                >
+                  <div class="col">
+                    {{ key }}
+                  </div>
+
+                  <q-space></q-space>
+
+                  <div class="col q-gutter-sm" align="right">
+                    <q-btn
+                      v-if="
+                        val.toLowerCase().includes('.jpg') ||
+                        val.toLowerCase().includes('.jpeg') ||
+                        val.toLowerCase().includes('.png') ||
+                        val.toLowerCase().includes('.pdf')
+                      "
+                      round dense flat
+                      icon="image_search"
+                      @click="fetchAttachmentURLAndOpen(val, 'projects')"
+                    />
+
+                    <q-btn
+                      round dense flat
+                      icon="get_app"
+                      @click="downloadAttachment(key, val, 'projects')"
+                    />
+                  </div>
+                </li>
+
+                <div
+                  v-if="!data || !data.files || !Object.keys(data.files).length"
+                  class="q-ml-sm"
+                >
+                  No testing section to display.
+                </div>
+              </div>
+            </q-tab-panel> -->
 
                     <!-- -------------------- Body -------------------- -->
                     <div class="q-pa-md">
@@ -321,7 +376,6 @@ Methods:
                   <br><br>
 
                 </div>
-
                 <!-- -------------------- Popup Dialog -------------------- -->
                 <div class="q-pa-md q-gutter-sm">
                   <q-dialog v-model="fixedDialog">
@@ -438,7 +492,203 @@ Methods:
                 </div>
               </div>
             </q-tab-panel>
+            <q-tab-panel name="notes">
+              <div
+                class="shadow-2 q-pa-md"
+                style="
+                  margin: auto;
+                  max-width: 1000px;
+                  min-width: 800px;
+                  border-radius: 3px;
+                "
+              >
+              <div class="text-h5 q-mb-md">
+                  Attachments
+                  <q-separator color="secondary" />
+                </div>
+              <!-- -------------------- Edit Notebook -------------------- -->
+                  <div>
 
+                    <!-- ----------------- Main Add Button ----------------- -->
+                    <div class="qs-pa-sm">
+                      <q-btn
+                        round
+                        icon="add" color="accent"
+                        @click="createNotebookThread"
+                      />
+                    </div>
+
+                    <!-- -------------------- Notebook Family ------------------- -->
+                    <div
+                      v-if="curData.notebooks"
+                      class="q-pa-md q-gutter-sm"
+                    >
+                      <div
+                        v-for="(val, ind) in curData.notebooks"
+                        :key="ind"
+                        align="left"
+                        class="shadow-2 q-pa-sm"
+                        style="border-radius: 3px;"
+                      >
+                        <div class="row">
+                          <div class="col">
+                            <div class="cursor-pointer q-pa-xs">
+                              Title: {{ val.title }}
+                              <q-popup-edit
+                                buttons
+                                v-model="val.title"
+                                @hide="updateNotebookAtHide"
+                              >
+                                <q-input
+                                  dense filled autofocus
+                                  v-model="val.title"
+                                />
+                              </q-popup-edit>
+                            </div>
+
+                            <div class="cursor-pointer q-pa-xs">
+                              Description:
+                              <pre>{{ val.description }}</pre>
+                              <q-popup-edit
+                                buttons
+                                v-model="val.description"
+                                @hide="updateNotebookAtHide"
+                              >
+                                <q-input
+                                  dense filled autofocus
+                                  v-model="val.description"
+                                />
+                              </q-popup-edit>
+                            </div>
+
+                            <div class="cursor-pointer q-pa-xs q-mt-xs">
+                              Index: {{ val.index }}
+                              <q-popup-edit
+                                buttons
+                                v-model="val.index"
+                                @hide="updateNotebookAtHide(['index', ind, val.index])"
+                              >
+                                <q-input
+                                  dense filled autofocus
+                                  type="number"
+                                  v-model="val.index"
+                                />
+                              </q-popup-edit>
+                            </div>
+
+                            <div>
+                              <q-checkbox
+                                left-label
+                                label="Hidden:"
+                                v-model="val.hidden"
+                                @input="updateNotebookAtHide"
+                              />
+                            </div>
+                          </div>
+
+                          <div align="right" class="col">
+                            <q-btn
+                              round flat
+                              icon="delete"
+                              @click="deleteNotebookThread(ind)"
+                            />
+                          </div>
+                        </div>
+
+                        <div class="q-mb-md">
+                          <q-btn
+                            round
+                            color="accent" icon="add"
+                            @click="addNotebook(ind)"
+                          />
+                        </div>
+
+                        <!-- ------------------ Notebook Data ------------------ -->
+                        <div v-if="val.data">
+                          <div
+                            v-for="(dataVal, dataInd) in val.data"
+                            :key="dataInd"
+                            class="shadow-2 q-pa-sm q-mb-sm"
+                            style="border-radius: 3px;"
+                          >
+                            <div class="cursor-pointer q-pa-xs">
+                              Title: {{ dataVal.title }}
+                              <q-popup-edit
+                                buttons
+                                v-model="dataVal.title"
+                                @hide="updateNotebookAtHide"
+                              >
+                                <q-input
+                                  dense filled autofocus
+                                  v-model="dataVal.title"
+                                />
+                              </q-popup-edit>
+                            </div>
+
+                            <div class="cursor-pointer q-pa-xs q-mt-xs">
+                              Date Added: {{ dataVal.date }}
+                              <q-popup-edit
+                                buttons
+                                v-model="dataVal.date"
+                                @hide="updateNotebookAtHide"
+                              >
+                                <q-input
+                                  dense filled autofocus
+                                  v-model="dataVal.date"
+                                />
+                              </q-popup-edit>
+                            </div>
+
+                            <div class="cursor-pointer q-pa-xs q-mt-xs">
+                              Description: <br>
+                              <pre>{{ dataVal.description }}</pre>
+
+                              <q-popup-edit
+                                buttons
+                                v-model="dataVal.description"
+                                @hide="updateNotebookAtHide"
+                              >
+                                <q-input
+                                  dense
+                                  filled
+                                  autofocus
+                                  autogrow
+                                  v-model="dataVal.description"
+                                />
+                              </q-popup-edit>
+                            </div>
+
+                            <div>
+                              <q-checkbox
+                                label="Hidden:"
+                                left-label
+                                v-model="dataVal.hidden"
+                                @input="updateNotebookAtHide"
+                              />
+                            </div>
+
+                            <div align="right" class="q-gutter-sm" >
+                              <q-btn
+                                dense round flat
+                                color="accent" icon="delete"
+                                @click="deleteLog(dataInd, ind)"
+                              />
+                              <q-btn
+                                dense round flat
+                                color="accent" icon="reply"
+                                @click="replyLog(ind, dataVal)"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+              </q-tab-panel>
             <q-tab-panel name="attachments">
               <div
                 class="shadow-2 q-pa-md"
@@ -494,12 +744,52 @@ Methods:
                 </div>
               </div>
             </q-tab-panel>
-          </q-tab-panels>
+  </q-tab-panels>
         </template>
-
       </q-splitter>
     </div>
-
+    <!-- -------------------- Body --------------------
+                    <div class="q-pa-md">
+                      <div
+                        v-for="(bodyContent, bodyInd) in data.webpage.body"
+                        :key="bodyInd"
+                      >
+                            <div>
+                              <ul>
+                                <li
+                                  v-for="(link, ulIndex) in bodyContent.content.list"
+                                  :key="ulIndex"
+                                >
+                                  <div
+                                    v-if="bodyContent.content.type === 'EVENT_LIST'"
+                                    style="display: inline; padding-left: 12px;"
+                                  >
+                                    {{ link.subject }}
+                                    <hr>
+                                    Description: {{ link.body }} <br>
+                                    Date and Time: {{ link.date }} <br>
+                                    <a v-if="link.url !== ''" :href="link.url">More...</a>
+                                  </div>
+                                  <span v-else>
+                                    <em v-if="link.url === ''">
+                                      {{ link.item }}
+                                    </em>
+                                    <a
+                                      v-else
+                                      target="_blank" rel="noopener noreferrer"
+                                      :href="link.url"
+                                    >
+                                      {{ link.item }}
+                                    </a>
+                                  </span>
+                                </li>
+                              </ul>
+                            </div>
+                          </div>
+                          <br>
+                        </div> -->
+ <div>
+  </div>
   </q-page>
 </template>
 
@@ -568,7 +858,7 @@ export default {
       },
       projectId: this.$route.params.project_id, // <String>: UID of the project
       loading: true, // <Boolean>: flag for the page loading
-      data: {}, // <Object>: webpage information regarding the specifc project
+      data: {}, // <Object>: webpage information regarding the specific project
       notFound: false, // <Boolean>: flag for 404
       pageTab: '', // <String>: tab tracker for the webpage
       splitterModel: 15, // <Number>: % of vw that left splitter is located
@@ -576,7 +866,17 @@ export default {
         // tags <Array<String>>: list of default values for the progress bar
         tags: ['Idea', 'PoC', 'Value'],
         half: true // <Boolean>: flag for the half step
-      }
+      },
+      test: false,
+      prompt: false,
+      address: '',
+      curData: {},
+      configData: {},
+      updated: false,
+      chipType: '',
+      bodyType: '',
+      addedChip: false,
+      addedContent: false
     }
   },
   methods: {
@@ -687,6 +987,8 @@ export default {
 
       if (this.$route.params.extraRoute === 'logs') {
         this.pageTab = 'logs'
+      } else if (this.$route.params.extraRoute === 'testnote') {
+        this.pageTab = 'testnote'
       } else {
         this.pageTab = 'main'
       }
@@ -729,6 +1031,54 @@ export default {
 
           this.db.collection('projects').doc(this.data.uuid).set({
             logs: this.data.logs
+          }, { merge: true })
+        } else {
+          this.$q.notify({
+            message: 'Not a valid response!',
+            color: 'negative',
+            icon: 'report_problem'
+          })
+        }
+      })
+    },
+    replyTestNote: function (familyIndex, responseObj) {
+      /**
+       * allow the user to reply to a log and notifies user on fail
+       * @param {Integer} familyIndex: index number on the log list
+       * @param {Object} responseObj: the targetted response
+       * @return {void}
+       */
+
+      this.$q.dialog({
+        dark: true,
+        title: 'Response...',
+        message: '<strong>Please enter your response.</strong><br><br><p class="text-red">Note: Your response cannot be empty!</p>',
+        html: true,
+        prompt: {
+          model: '',
+          type: 'text' // optional
+        },
+        cancel: true,
+        persistent: true
+      }).onOk(data => {
+        if (data) {
+          let tmpTestNote = {
+            title: `In response to: "${responseObj.title}"!`,
+            date: Date(),
+            description: `>>>>>>>>>>\n${responseObj.description}\n>>>>>>>>>>\n${data}`,
+            hidden: false
+          }
+
+          // let size = this.curData.logs[familyIndex].data.length
+
+          this.data.testnote[familyIndex].data.push(tmpTestNote)
+          // let size = this.curData.logs[index].data.length
+          // this.updated = true
+
+          this.$forceUpdate()
+
+          this.db.collection('projects').doc(this.data.uuid).set({
+            testnote: this.data.testnote
           }, { merge: true })
         } else {
           this.$q.notify({
@@ -1120,6 +1470,100 @@ export default {
        */
 
       window.open(entry, '_blank', 'noopener')
+    },
+    loadConfig: async function () {
+      let doc = await this.db.collection('config').doc('project').get()
+
+      if (doc.exists) {
+        let data = doc.data()
+
+        for (let key in data['keywords']) {
+          this.keywordOptions.push({
+            label: key,
+            value: data['keywords'][key]
+          })
+        }
+
+        // this.configData = cloneDeep(data)
+
+        this.configData.customChips = this.configData.customChips || []
+
+        // TODO: write this to the db
+        if (
+          !JSON.stringify(
+            this.configData.bodyContentType
+          ).includes('MARKDOWN')
+        ) {
+          this.configData.bodyContentType.unshift({
+            label: 'Markdown/HTML', value: 'MARKDOWN'
+          })
+        }
+
+        // TODO: update on the db to avoid this
+        let tmpBodyContentType = []
+        this.configData.bodyContentType.forEach(type => {
+          if (
+            type.value !== 'UNORDERED_LIST' &&
+            type.value !== 'EVENT_LIST' &&
+            type.value !== 'TEXT_BOX'
+          ) {
+            if (type.value !== 'ORDERED_LIST') {
+              tmpBodyContentType.push(type)
+            } else {
+              tmpBodyContentType.push({
+                label: 'URL List',
+                value: 'ORDERED_LIST'
+              })
+            }
+          }
+        })
+        this.configData.bodyContentType = tmpBodyContentType
+
+        // 'None' to be highlighted as chip gets created
+        this.configData.customChips.push({
+          label: 'None',
+          value: null
+        })
+        // this.allowedDomain = data['allowedDomain'] // TODO
+      }
+    },
+    addChip: function () {
+      let tmpChip = {}
+
+      if (this.chipType.value === 'SOURCE') {
+        tmpChip = {
+          index: this.curData.webpage.chips.length + 1,
+          content: {
+            label: this.chipType.label,
+            type: this.chipType.value,
+            icon: 'code',
+            url: ''
+          }
+        }
+      } else if (this.chipType.value === 'VIDEO') {
+        tmpChip = {
+          index: this.curData.webpage.chips.length + 1,
+          content: {
+            label: this.chipType.label,
+            type: this.chipType.value,
+            icon: 'movie',
+            url: ''
+          }
+        }
+      } else {
+        tmpChip = {
+          index: this.curData.webpage.chips.length + 1,
+          content: {
+            label: '',
+            type: this.chipType.value,
+            icon: null,
+            url: ''
+          }
+        }
+      }
+      tmpChip['hidden'] = false
+      this.curData.webpage.chips.push(tmpChip)
+      this.updated = true
     }
   },
   watch: {

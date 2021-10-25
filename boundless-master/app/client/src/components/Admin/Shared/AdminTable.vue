@@ -244,6 +244,8 @@ import addProject from '../../../components/SubmitProjectAdminConsole'
 import editProject from '../../../components/EditAndPreviewProject'
 import addUser from '../../../components/SubmitUserAdminConsole'
 import editUser from '../../../components/EditUser'
+import editProjectMain from '../../../components/EditAndPreviewProjectMain'
+
 
 import productionDb, { proAppCall } from '../../../firebase/init_production'
 import testingDb, { testAppCall } from '../../../firebase/init_testing'
@@ -283,7 +285,8 @@ export default {
     addUser,
     editChallenge,
     editProject,
-    editUser
+    editUser,
+    editProjectMain
   },
   computed: {
     getAddRowComponent () {
